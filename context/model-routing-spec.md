@@ -1,331 +1,292 @@
-# Clawmic Model Selection & Failover Specification
+# Clawmic Model Routing Specification v2
 
-This document defines how Clawmic intelligently selects models based on task complexity, accuracy requirements, and cost optimization.
-
----
-
-## 0) Goal
-
-Clawmic operates with intelligent, cost-aware model selection:
-
-- **Default:** fast & cheap (everyday chat, simple tasks)
-- **Auto-upgrade:** when complexity, accuracy, or tools require it
-- **Auto-downgrade:** when task is trivial
-- **Vision-aware:** switch to vision model when images are involved
-- **Robust:** handle rate limits, provider outages, key issues gracefully
-- **Cost-aware:** warn when high-cost models are used extensively
-- **User override:** respect explicit /model commands
+This document defines how Clawmic selects models across two dimensions:
+**Planning** (thinking, clarifying, specifying) and **Execution** (writing code).
 
 ---
 
-## 1) Providers
+## Core Principle
 
-Connected:
-- **Anthropic** (Claude)
-- **Google** (Gemini)  
-- **OpenAI**
+Clawmic operates in two modes with separate model hierarchies:
 
-Environment variables (per SECURITY.md):
-- `ANTHROPIC_API_KEY`
-- `GEMINI_API_KEY`
-- `OPENAI_API_KEY`
+1. **Planning Mode** — Strategic thinking, Q&A, spec writing
+2. **Execution Mode** — Actual code implementation
+
+The right model depends on BOTH the mode AND the task complexity.
 
 ---
 
-## 2) Model Tiers
+## 1) Planning Tiers
 
-### Tier A — Fast & Cheap (Default)
+Used for: Chat, Q&A, clarification, spec writing, architecture review.
 
-**Use cases:**
-- Smalltalk, short answers
-- Simple Q&A
-- Light text editing
-- Short translations
-- Trivial tasks
+| Tier | Role | Primary Model | Fallback | When |
+|------|------|---------------|----------|------|
+| **P-A** | Daily Chat | Gemini Flash | OpenAI mini | Smalltalk, quick questions, simple Q&A |
+| **P-B** | Strategic | Claude Sonnet | OpenAI standard | Q&A sessions, spec writing, planning |
+| **P-C** | Masterbrain | Claude Opus | Sonnet + think:high | Architecture decisions, critical reviews |
 
-**Models:**
-- `claude-3-5-haiku-20241022`
-- `gemini-2.0-flash`
-- `gpt-4o-mini`
+### P-A: Daily Chat (80% of planning usage)
+- Short answers, clarifications
+- No complex reasoning needed
+- Cost-optimized
 
-**Think setting:** `low`
+### P-B: Strategic (18% of planning usage)
+- Structured Q&A to clarify requirements
+- Writing implementation specifications
+- Planning multi-step work
+- Analyzing existing code
 
----
-
-### Tier B — General Strong
-
-**Use cases:**
-- Medium complexity, structured emails, product copy
-- Moderate planning, medium code tasks
-- Summaries with multiple sources
-- Tool usage (files, tables, simple workflows)
-
-**Models:**
-- `claude-sonnet-4-5-20250514`
-- `gemini-2.5-pro`
-- `gpt-4o`
-
-**Think setting:** `medium`
+### P-C: Masterbrain (2% of planning usage)
+- Architecture decisions with long-term impact
+- Critical review before major implementations
+- When Sonnet is uncertain or stuck
+- **Requires:** User says `REVIEW` or explicit high-risk detection
 
 ---
 
-### Tier C — Max Accuracy / Tool-Heavy
+## 2) Execution Tiers
 
-**Use cases:**
-- Architecture decisions, deep debugging
-- Complex multi-step tasks
-- Very long context, many constraints
-- High-stakes accuracy (production bugs, data migration)
-- Keywords: "perfect", "exact", "no errors", "production-ready"
+Used for: Writing actual code after planning is complete.
 
-**Models:**
-- `claude-opus-4-6-20250601` (when available)
-- `claude-sonnet-4-5-20250514` + `think:high` (fallback)
-- `o3` / `gpt-4.5` (when available)
-- `gemini-2.5-pro` + extended thinking
+| Tier | Role | Primary Model | When |
+|------|------|---------------|------|
+| **E-S** | Major Implementation | Claude Opus (strongest) | New features, redesigns, greenfield |
+| **E-A** | Major Iteration | Claude Opus (strong) | Extending existing systems |
+| **E-B** | Complex Task | OpenAI strong | Difficult bugs, refactoring, complex logic |
+| **E-C** | Standard Task | OpenAI standard/cheap | Small fixes, styling, simple changes |
 
-**Think setting:** `high`
+### E-S: Major Implementation
+**Criteria (any of these):**
+- New feature built from scratch
+- Complete redesign/rewrite of component
+- Multi-file implementation with many dependencies
+- Greenfield or near-greenfield work
+- "Design from one mold" / cohesive system design
 
----
+**Prerequisites:**
+- Q&A phase MUST be completed
+- Spec MUST be written and approved
+- All assets and dependencies MUST be ready
 
-### Vision Tier
+**Cost warning:** Always shown before execution
 
-**Trigger:** Image in input OR "look at this screenshot/photo"
+### E-A: Major Iteration
+**Criteria (any of these):**
+- Extending existing functionality significantly
+- Integrating new section/module into existing system
+- Refactoring with architectural changes
+- Adding major feature to existing codebase
 
-**Models:**
-- `claude-sonnet-4-5-20250514` (vision capable)
-- `gpt-4o` (vision capable)
-- `gemini-2.5-pro` (vision capable)
+**Prerequisites:**
+- Existing code understood
+- Impact on existing system analyzed
 
-**Rule:** If current model lacks vision → switch to vision model.
-If image + debugging → Vision + Tier C.
+**Cost warning:** Always shown before execution
 
----
+### E-B: Complex Task
+**Criteria (any of these):**
+- Complex bug with unclear root cause
+- Performance optimization requiring deep analysis
+- Difficult logic implementation
+- Writing tests for complex components
+- Refactoring without architecture change
 
-## 3) Upgrade Triggers
+**Prerequisites:**
+- Problem clearly defined
+- Acceptance criteria clear
 
-### A → B (any of these)
+**Cost warning:** None (OpenAI, moderate cost)
 
-- More than 1 clear sub-task ("do A, then B, then C")
-- User requests reasoning, comparisons, tradeoffs
-- Output must be structured (spec, plan, checklist, API design)
-- Context contains ≥2 technical components
-- Constraints present (performance, cost, security, UX)
-- Tool usage expected (files, tables, external sources)
+### E-C: Standard Task
+**Criteria (any of these):**
+- Small bug fixes
+- Styling/CSS changes
+- Text/content updates
+- Simple component modifications
+- Copy-paste with minor adjustments
 
-### B → C (any of these)
+**Prerequisites:**
+- Clear description is sufficient
 
-- Debugging/refactoring in real codebase
-- **Quality keywords + complexity:** "perfect", "exact", "no errors", "production-ready" PLUS at least one of: multi-step tasks, code context, constraints, or high-risk domain
-- Long specification, many acceptance criteria
-- Tool-heavy planned (multi-step, multi-file, external APIs)
-- High risk: data loss, auth/keys, CI/CD, migrations
-- User explicitly requests highest quality
-
-**Note:** Quality keywords alone (without complexity signals) do not trigger Tier C upgrade to prevent cost manipulation.
-
-### Downgrade C/B → A (all must apply)
-
-- User asks for "short", "bullet points", "doesn't matter"
-- OR chat is clearly trivial (1 sentence, no constraints)
-- AND no vision/tools needed
-- AND context fits in Tier A window
-
----
-
-## 4) Extended Thinking Rules
-
-| Tier | Think Setting | When |
-|------|---------------|------|
-| A | `low` | Default for simple tasks |
-| B | `medium` | Default for medium complexity |
-| C | `high` | Always for Tier C tasks |
-| Any | `high` | User says "think carefully", "reason step by step" |
-
-**Cost warning:** If `think:high` is used >3 times in a session, notify user once:
-"Using extended thinking frequently. This increases cost. Continue?"
+**Cost warning:** None (cheap)
 
 ---
 
-## 5) Context Window Handling
+## 3) Workflow: Planning to Execution
 
-**Reactive approach:** Instead of predicting context limits, handle them as they occur:
-
-1. **Start with selected tier** based on complexity
-2. **If provider returns context error** → upgrade to next tier
-3. **If all tiers fail with context error** → ask user to reduce context
-4. **Never truncate without user consent**
-
-**Context window capacity varies by provider and model version. Reactive handling is more robust than fixed predictions.**
-
-| Model Class | Typical Range |
-|-------------|---------------|
-| Fast models | 100-200k tokens |
-| General models | 200-1M+ tokens |
-| Max models | 200k-2M+ tokens |
+```
+USER REQUEST
+     ↓
+┌─────────────────────────────────────────┐
+│  PHASE 1: RECOGNITION (P-A)             │
+│  Clawmic identifies: Is this code work? │
+│  → Yes: Start implementation workflow   │
+│  → No: Standard response                │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│  PHASE 2: Q&A (P-B)                     │
+│  Systematic clarification               │
+│  Covers: scope, context, edge cases,    │
+│          constraints, testing, rollback │
+│  → User says: SPEC                      │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│  PHASE 3: SPEC WRITING (P-B)            │
+│  Write perfect implementation spec      │
+│  → Optional: User says REVIEW → P-C     │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│  PHASE 4: EXECUTION PROPOSAL            │
+│  Clawmic analyzes task size and proposes│
+│  appropriate execution tier:            │
+│                                         │
+│  "Based on this spec (new feature,      │
+│   multi-file, greenfield), I recommend  │
+│   E-S (Opus). Cost estimate: ~$X.       │
+│   Confirm with BUILD S, or choose       │
+│   BUILD A/B/C for different tier."      │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│  PHASE 5: EXECUTION (E-S/A/B/C)         │
+│  Code is written with selected model    │
+│  Follow spec exactly                    │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│  PHASE 6: VERIFICATION (P-A or P-B)     │
+│  Review result, provide feedback        │
+│  → Done or iterate                      │
+└─────────────────────────────────────────┘
+```
 
 ---
 
-## 6) Cost Awareness
+## 4) User Commands
 
-### Approximate cost multipliers (vs Tier A baseline)
+| Command | Effect |
+|---------|--------|
+| `SPEC` | Q&A complete → proceed to spec writing |
+| `REVIEW` | Request Masterbrain (Opus) to review spec |
+| `BUILD S` | Execute with Opus (Major Implementation) |
+| `BUILD A` | Execute with Opus (Major Iteration) |
+| `BUILD B` | Execute with OpenAI strong (Complex Task) |
+| `BUILD C` | Execute with OpenAI cheap (Standard Task) |
+| `BUILD` | Clawmic chooses tier based on spec (with confirmation) |
 
-| Tier | Cost Factor |
-|------|-------------|
-| A | 1x |
-| B | 5x |
-| C | 15-25x |
-| think:high | +2-3x |
+---
+
+## 5) Automatic Tier Selection
+
+When user says just `BUILD` (without tier), Clawmic analyzes the spec:
+
+**Select E-S if:**
+- Spec mentions "new feature", "from scratch", "redesign"
+- Multiple new files to create
+- No existing code to extend
+
+**Select E-A if:**
+- Spec mentions "extend", "integrate", "add to existing"
+- Modifying existing architecture
+- New module in existing system
+
+**Select E-B if:**
+- Spec mentions "fix", "optimize", "refactor"
+- Complex logic but contained scope
+- Debugging or performance work
+
+**Select E-C if:**
+- Spec mentions "small change", "update", "tweak"
+- Single file, simple modification
+- Styling or content changes
+
+**Always confirm selection with user before executing.**
+
+---
+
+## 6) Cost Protection
 
 ### Warnings
 
-- If Tier C used >5 times in one session: warn once
-- If estimated session cost >$1: warn once
-- User can disable warnings: `/cost-warnings off`
+| Tier | Before Execution |
+|------|------------------|
+| E-S | "⚠️ Using Opus for major implementation. This is your most expensive tier. Proceed with BUILD S?" |
+| E-A | "⚠️ Using Opus for iteration. Estimated cost for this task: ~$X. Proceed with BUILD A?" |
+| E-B | No warning |
+| E-C | No warning |
+
+### Budget Tracking
+
+- Track daily/weekly Opus usage
+- If approaching limits, suggest downgrade: "Consider BUILD B (OpenAI) to save budget"
+- Never refuse, only warn and suggest
 
 ---
 
 ## 7) Failover Strategy
 
-### Error handling order
+### Planning Failover
 
-1. **Auth rotation** (same provider, same model, different key if available)
-2. **Model fallback** (same tier, same provider)
-3. **Provider fallback** (same tier, different provider)
-4. **Tier fallback** (ONLY for availability tasks, NEVER for accuracy tasks)
+| If unavailable | Try next |
+|----------------|----------|
+| Gemini Flash | OpenAI mini |
+| Claude Sonnet | OpenAI standard |
+| Claude Opus | Sonnet + think:high |
 
-### Critical Rule: No Tier Downgrade for Accuracy Tasks
+### Execution Failover
 
-**If task requires Tier C** (keywords: "production-ready", "perfect", "no errors", high-risk):
-- **All Tier C models unavailable** → Wait/retry OR inform user
-- **Never silent downgrade to Tier B/A** → Quality violation
-- **User must approve lower tier** → Explicit consent required
+| If unavailable | Try next |
+|----------------|----------|
+| Opus (E-S/E-A) | Sonnet + think:high → OpenAI strong |
+| OpenAI strong (E-B) | OpenAI standard |
+| OpenAI standard (E-C) | OpenAI mini |
 
-This prevents quality degradation for critical tasks.
-
-### Error classes
-
-| Error | Action |
-|-------|--------|
-| Rate limit / 429 / timeout | Auth rotation → model fallback → provider fallback |
-| Invalid key / billing | Provider disabled temporarily |
-| Model not in allowlist | Log as config bug, use fallback |
-| Context too long | Upgrade tier or ask user to reduce |
-| All Tier C unavailable (accuracy task) | Wait/retry OR user consent for downgrade |
-| All Tier C unavailable (general task) | Fallback to Tier B with warning |
-
-### Fallback chains
-
-- **Tier A:** Claude-haiku → Gemini-flash → GPT-4o-mini
-- **Tier B:** Claude-sonnet → GPT-4o → Gemini-pro
-- **Tier C:** Claude-opus → Claude-sonnet+think:high → GPT-4.5 → Gemini-pro+thinking
-- **Vision:** Claude-sonnet → GPT-4o → Gemini-pro
+**Critical rule:** Never silently downgrade E-S/E-A to OpenAI. Always inform user.
 
 ---
 
-## 8) User Override
+## 8) Provider Roles Summary
 
-| Command | Function |
-|---------|----------|
-| `/model [name]` | Switch to specific model (must be in allowlist) |
-| `/model status` | Show current model and tier |
-| `/model auto` | Return to automatic selection |
-| `/tier [a\|b\|c]` | Force tier for this session |
-| `/think [low\|medium\|high]` | Force thinking level |
-
-If requested model not in allowlist → error with list of allowed models.
+| Provider | Primary Role |
+|----------|--------------|
+| **Gemini** | Daily chat (cheap, fast) |
+| **Claude** | Strategic thinking + major execution |
+| **OpenAI** | Standard execution + fallback |
 
 ---
 
-## 9) Transparency
+## 9) Examples
 
-When model changes, log (if `verboseRouting=true`):
-
-```
-[routing] Upgrading to Tier B: multiple sub-tasks detected
-[routing] Switching to vision model: image in input
-[routing] Fallback: claude-sonnet rate limited → gpt-4o
-```
-
-**Default:** silent routing. User can enable: `/verbose on`
-
----
-
-## 10) Special Workflow: Production Code
-
-**When Clawmic detects a production code implementation request:**
-
-This is NOT just a model tier decision — it triggers a mandatory workflow.
-
-**See:** `context/implementation-workflow.md`
-
-**Summary of the 5-phase workflow:**
-
-| Phase | Model Tier | User Trigger |
-|-------|------------|--------------|
-| 1. Recognition | Current | Auto-detect |
-| 2. Q&A Clarification | Tier B | Automatic |
-| 3. Implementation Plan | Tier C | User says `PLAN` |
-| 4. Execution | Tier C (Opus) | User says `BUILD` |
-| 5. Completion | Current | Automatic |
-
-**Key rules:**
-- No skipping phases for production code
-- User must explicitly approve plan before execution
-- Tier C (Opus) only engaged at execution phase to optimize cost
-
-This workflow overrides standard tier selection for code implementation tasks.
+| User Request | Planning Tier | Execution Tier |
+|--------------|---------------|----------------|
+| "What time is it in Zürich?" | P-A | None |
+| "Let's plan the new auth system" | P-B | None (planning only) |
+| "BUILD the auth system we just planned" | — | E-S (new feature) |
+| "Add a blog section to the website" | P-B → | E-A (iteration) |
+| "Fix the login bug" | P-B → | E-B (complex task) |
+| "Change the button color to blue" | P-A → | E-C (standard) |
 
 ---
 
-## 11) Acceptance Criteria
+## 10) Acceptance Criteria
 
-| Scenario | Expected Behavior |
-|----------|-------------------|
-| "What time in Zürich?" | Tier A |
-| "Give me exact spec, must be perfect" | Tier C (if complexity present) |
-| Screenshot analysis | Vision model |
-| "Make me an Excel/PDF" | Tier B minimum |
-| "Production-ready migration script" | Tier C + think:high |
-| "Implement this feature" | **Implementation Workflow** (5 phases) |
-| "Build the API endpoint" | **Implementation Workflow** (5 phases) |
-| Rate limit on primary | Silent fallback, no user action |
-| `/model gpt-4o` | Switch if in allowlist |
-| `/model random-model` | Error + show allowed models |
+| Scenario | Expected |
+|----------|----------|
+| Trivial question | P-A, no spec, no build |
+| New feature request | P-B Q&A → P-B Spec → E-S |
+| Extend existing feature | P-B Q&A → P-B Spec → E-A |
+| Complex bug | P-B analysis → E-B |
+| Simple fix | P-A → E-C |
+| User says BUILD without tier | Clawmic proposes tier, waits for confirmation |
+| E-S/E-A selected | Cost warning shown |
+| Opus unavailable for E-S | Warn user, suggest Sonnet+thinking or wait |
 
 ---
 
-## 12) Implementation Notes
+*This specification ensures optimal model selection for both cost efficiency and output quality.*
 
-### Configuration Structure
-
-To implement this specification, the OpenClaw configuration needs:
-
-1. **Model allowlist** — All models that can be used
-2. **Tier definitions** — Which models belong to which tier
-3. **Default routing** — Starting model and upgrade paths
-4. **Fallback chains** — What to try when models fail
-5. **Cost tracking** — Session cost estimation and warnings
-
-### Required from Current Setup
-
-For implementation, need to see current `openclaw.json` structure:
-```bash
-cat ~/.openclaw/openclaw.json | grep -v -E "(key|secret|token)"
-```
-
-This shows config without exposing secrets.
-
-### Testing Protocol
-
-1. **Tier selection** — Verify upgrade/downgrade triggers work
-2. **Failover robustness** — Test rate limits and provider outages
-3. **Cost awareness** — Verify warnings at appropriate thresholds
-4. **Vision handling** — Test image inputs route to vision models
-5. **User overrides** — Test all `/model` and `/tier` commands
-
----
-
-*This specification ensures Clawmic operates efficiently across the cost/quality spectrum while maintaining robustness and user control.*
-
-—Clawmic Team
+—Clawmic

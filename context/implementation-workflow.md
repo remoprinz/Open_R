@@ -1,261 +1,320 @@
-# Implementation Workflow — Production-Ready Code
+# Implementation Workflow v2
 
-This document defines the mandatory process for implementing code that goes
-into production. No shortcuts. Quality over speed.
-
----
-
-## 0) When This Workflow Applies
-
-Clawmic activates this workflow when detecting:
-
-- User requests code implementation (not just examples or pseudocode)
-- Keywords: "implement", "build", "create", "develop", "code this", "make it work"
-- Context indicates production use: CI/CD, deployment, migration, API, database
-- Colleague request from Slack/Telegram with implementation intent
-- Any task where failure would cause real damage
-
-**If in doubt:** Ask. "Is this for production, or just exploration?"
+This document defines the mandatory process for implementing code.
+It integrates with the Model Routing Specification (see `model-routing-spec.md`).
 
 ---
 
-## 1) Phase: Recognition
+## Overview
 
-**Clawmic's internal check:**
+Every code implementation follows this flow:
 
 ```
-Is this a code implementation request?
-├── Yes → Activate Implementation Workflow
-│          Inform user: "I recognize this as an implementation task.
-│          Before writing any code, we'll go through a structured process
-│          to ensure we get it right the first time."
-│
-└── No  → Standard response (no workflow)
+RECOGNITION → Q&A → SPEC → [REVIEW] → BUILD → VERIFICATION
 ```
 
-**Model tier:** Current tier (recognition is lightweight)
+Each phase has a specific purpose, model tier, and exit criteria.
 
 ---
 
-## 2) Phase: Q&A — Clarification
+## Phase 1: Recognition
+
+**Purpose:** Identify that this is a code implementation request.
+
+**Model:** P-A (current tier)
+
+**Clawmic detects:**
+- Keywords: "implement", "build", "create", "develop", "code this"
+- Context: CI/CD, deployment, API, database, migration
+- Intent: User wants working code, not just explanation
+
+**Output:**
+```
+"This is an implementation request. Before writing any code, 
+we'll go through a structured process:
+
+1. Q&A to clarify all requirements
+2. Specification to document exactly what we'll build
+3. Your approval before execution
+
+Let's start. [First clarifying question]"
+```
+
+---
+
+## Phase 2: Q&A Clarification
 
 **Purpose:** Eliminate all ambiguity before planning.
 
-**Clawmic announces:**
+**Model:** P-B (Claude Sonnet)
 
-```
-"To ensure we build exactly what you need, I'll ask clarifying questions.
-We'll continue this Q&A until all questions are resolved. I'll also give
-recommendations if you're unsure about something.
+**Systematic coverage:**
 
-Once everything is clear, I'll ask for your confirmation to proceed
-to the implementation plan."
-```
-
-**Model tier:** Tier B (General Strong — e.g., Claude Sonnet)
-
-**Q&A structure:**
-
-Clawmic systematically covers:
-
-| Category | Example Questions |
-|----------|-------------------|
+| Category | Questions |
+|----------|-----------|
 | **Scope** | What exactly should this do? What should it NOT do? |
 | **Context** | Where does this run? What systems does it interact with? |
 | **Inputs/Outputs** | What data comes in? What should come out? |
-| **Edge cases** | What happens if X fails? Empty input? Timeout? |
-| **Constraints** | Performance requirements? Security? Compliance? |
+| **Edge Cases** | What if X fails? Empty input? Timeout? |
+| **Constraints** | Performance? Security? Compliance? Budget? |
 | **Dependencies** | What existing code/services does this depend on? |
-| **Testing** | How will we verify this works? Acceptance criteria? |
+| **Testing** | How do we verify it works? Acceptance criteria? |
 | **Rollback** | If this breaks, how do we recover? |
 
-**Clawmic's behavior during Q&A:**
-
-- Ask one category at a time, not all at once
+**Behavior:**
+- Ask one category at a time
 - If user is unsure → provide recommendation with reasoning
-- If user gives vague answer → ask follow-up to clarify
-- Track what's been clarified vs. still open
-- Never proceed until ALL questions are resolved
+- If user gives vague answer → ask follow-up
+- Track what's clarified vs. still open
+- Never proceed until ALL essential questions resolved
 
-**Completion check:**
+**Exit trigger:** User says `SPEC`
 
+**Output:**
 ```
-"All clarifying questions are resolved. Here's a summary of what we agreed:
+"All clarifying questions resolved. Summary:
 
-[Summary of decisions]
+[Bullet list of decisions made]
 
-If this is correct, say PLAN and I'll create the implementation plan.
-If something needs adjustment, let me know."
+Say SPEC to proceed to specification writing."
 ```
-
-**User says:** `PLAN`
 
 ---
 
-## 3) Phase: Implementation Plan
+## Phase 3: Specification Writing
 
-**Purpose:** Create a perfect, structured plan before any code is written.
+**Purpose:** Create a perfect, unambiguous implementation spec.
 
-**Model tier:** Tier C (Max Accuracy — e.g., Claude Opus or Sonnet + think:high)
+**Model:** P-B (Claude Sonnet)
 
-**Clawmic creates:**
+**Spec format:**
 
 ```markdown
-# Implementation Plan: [Task Name]
+# Implementation Spec: [Feature Name]
 
 ## Overview
-[1-2 sentence summary of what we're building]
+[1-2 sentence summary]
+
+## Context
+- Codebase: [path]
+- Related files: [list]
+- Tech stack: [list]
+- Patterns to follow: [existing patterns]
+
+## Requirements
+1. [Requirement 1 — testable]
+2. [Requirement 2 — testable]
+...
 
 ## Architecture
-[How components fit together, data flow, dependencies]
+[How components fit together, data flow]
 
 ## Files to Create/Modify
 | File | Action | Purpose |
 |------|--------|---------|
-| src/... | Create | ... |
-| tests/... | Create | ... |
+| ... | Create/Modify | ... |
 
-## Implementation Steps
-1. [Step 1 with details]
-2. [Step 2 with details]
+## Edge Cases
+| Case | Expected Behavior |
+|------|-------------------|
+| ... | ... |
+
+## Acceptance Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
 ...
 
-## Edge Cases & Error Handling
-- [Edge case 1] → [How we handle it]
-- [Edge case 2] → [How we handle it]
-
 ## Testing Strategy
-- [ ] Unit tests for...
-- [ ] Integration test for...
-- [ ] Manual verification of...
+- [ ] [Test type and scope]
+...
 
 ## Rollback Plan
-If this fails: [specific recovery steps]
+[Specific recovery steps if this fails]
 
-## Risks & Mitigations
-| Risk | Mitigation |
-|------|------------|
-| ... | ... |
+## Do NOT
+- [Out of scope items]
+- [Common mistakes to avoid]
 ```
 
-**Clawmic presents the plan:**
-
+**Output:**
 ```
-"Here's the implementation plan. Review it carefully.
+"Here's the implementation specification:
 
-[Plan]
+[Full spec]
 
-If you're satisfied and ready to proceed with implementation,
-reply with BUILD.
-
-If you want changes to the plan, let me know what to adjust."
+Options:
+- Say REVIEW for Masterbrain (Opus) to review this spec
+- Say BUILD to proceed to implementation
+- Or tell me what to adjust"
 ```
-
-**User says:** `BUILD`
 
 ---
 
-## 4) Phase: Execution
+## Phase 4: Review (Optional)
 
-**Purpose:** Implement the plan with maximum accuracy.
+**Purpose:** Masterbrain validates spec for critical implementations.
 
-**Model tier:** Tier C (Max Accuracy — Claude Opus 4.5/4.6)
+**Model:** P-C (Claude Opus)
 
-**Clawmic's approach:**
+**Triggered by:** User says `REVIEW`
 
-- Follow the plan exactly
-- Implement step by step
-- Write clean, well-structured code
-- Include error handling as specified
-- Add comments only where non-obvious
-- Create tests as specified in plan
+**Or auto-suggested when:**
+- High-risk: production, auth, data migration, payment
+- Large scope: >5 files, architecture change
+- Uncertainty detected in Q&A phase
 
-**During execution:**
+**Cost warning:**
+```
+"⚠️ Masterbrain review uses Opus. Proceed with REVIEW?"
+```
 
-- If unexpected issue arises → pause and inform user
-- If plan needs adjustment → ask before deviating
-- Never skip steps from the plan
+**Review checks:**
+- Spec completeness
+- Hidden assumptions
+- Edge cases not covered
+- Architecture concerns
+- Risk assessment
+
+**Output:**
+```
+"Masterbrain Review Complete:
+
+✅ [What's good]
+⚠️ [Concerns/suggestions]
+❌ [Issues to fix]
+
+[Recommended changes if any]
+
+Say BUILD when ready, or adjust the spec first."
+```
 
 ---
 
-## 5) Phase: Completion
+## Phase 5: Execution Proposal & BUILD
+
+**Purpose:** Select appropriate execution tier and implement.
+
+**Model:** Depends on tier selected
+
+### 5a: Tier Proposal
+
+Clawmic analyzes the spec and proposes:
+
+```
+"Based on this spec:
+- [Key characteristic 1]
+- [Key characteristic 2]
+
+I recommend: BUILD [S/A/B/C] — [Tier name]
+
+Estimated scope: [X files, Y functions]
+[Cost warning if E-S or E-A]
+
+Confirm with BUILD [S/A/B/C], or choose a different tier."
+```
+
+### 5b: Execution Tiers
+
+| Command | Tier | Model | When |
+|---------|------|-------|------|
+| `BUILD S` | Major Implementation | Opus (strongest) | New features, redesigns |
+| `BUILD A` | Major Iteration | Opus (strong) | Extending existing systems |
+| `BUILD B` | Complex Task | OpenAI strong | Difficult bugs, refactoring |
+| `BUILD C` | Standard Task | OpenAI cheap | Small fixes, styling |
+
+### 5c: Execution
+
+Once user confirms:
+
+1. Follow spec exactly
+2. Implement step by step
+3. Create all specified files
+4. Handle all specified edge cases
+5. If unexpected issue → pause and inform user
+6. If spec adjustment needed → ask before deviating
+
+---
+
+## Phase 6: Verification
 
 **Purpose:** Confirm implementation and provide summary.
 
-**Clawmic reports:**
+**Model:** P-A or P-B (depending on complexity)
 
+**Output:**
 ```
 "Implementation complete.
 
-## What was done:
-- [File 1]: [What was created/modified]
-- [File 2]: [What was created/modified]
-...
+## Created/Modified:
+- [file1]: [what was done]
+- [file2]: [what was done]
 
-## Tests:
-- [Test results if run]
+## Acceptance Criteria:
+- [x] [Criterion 1] — verified
+- [x] [Criterion 2] — verified
 
-## Next steps:
-- [Any manual steps needed]
-- [How to verify it works]
+## Next Steps:
+- [Manual verification needed]
+- [How to test]
 
-## If something goes wrong:
-- [Rollback instructions from plan]
+## If Issues:
+- [Rollback instructions]
 
-Let me know if you need any adjustments."
+Let me know if adjustments needed."
 ```
 
 ---
 
-## Summary: The 5 Phases
+## Quick Reference: Commands
 
-| Phase | Trigger | Model Tier | Output |
-|-------|---------|------------|--------|
-| 1. Recognition | Code request detected | Current | User informed |
-| 2. Q&A | Automatic after recognition | Tier B | All questions resolved |
-| 3. Plan | User says `PLAN` | Tier C | Complete implementation plan |
-| 4. Execution | User says `BUILD` | Tier C (Opus) | Code implemented |
-| 5. Completion | Automatic after execution | Current | Summary & next steps |
-
----
-
-## User Commands
-
-| Command | Effect |
-|---------|--------|
-| `PLAN` | Proceed from Q&A to Implementation Plan |
-| `BUILD` | Proceed from Plan to Execution |
-| `STOP` | Abort workflow, return to normal chat |
-| `RESTART` | Go back to Q&A phase |
+| Command | Phase | Effect |
+|---------|-------|--------|
+| `SPEC` | Q&A → Spec | Start specification writing |
+| `REVIEW` | Spec → Review | Request Masterbrain review |
+| `BUILD` | Spec/Review → Exec | Clawmic proposes tier |
+| `BUILD S` | → Execution | Major Implementation (Opus) |
+| `BUILD A` | → Execution | Major Iteration (Opus) |
+| `BUILD B` | → Execution | Complex Task (OpenAI strong) |
+| `BUILD C` | → Execution | Standard Task (OpenAI cheap) |
+| `STOP` | Any | Abort workflow |
+| `RESTART` | Any | Return to Q&A |
 
 ---
 
 ## Quality Gates
 
-**Cannot proceed to PLAN unless:**
-- All clarifying questions answered
-- User confirmed summary is correct
+### Cannot proceed to SPEC unless:
+- All essential Q&A questions answered
+- User explicitly says `SPEC`
 
-**Cannot proceed to BUILD unless:**
-- Implementation plan reviewed
-- User explicitly said `BUILD`
+### Cannot proceed to BUILD unless:
+- Spec is written and presented
+- User explicitly says `BUILD` (with or without tier)
 
-**Cannot skip phases:**
-- No "just build it" shortcut for production code
-- User must go through Q&A and Plan phases
-
----
-
-## Exception: Exploration Mode
-
-If user explicitly says "just show me an example" or "rough sketch":
-- Skip this workflow
-- Use standard response
-- Make clear: "This is exploration, not production-ready"
+### Cannot skip phases:
+- No "just build it" shortcut for non-trivial code
+- Exception: E-C tasks (small fixes) can skip to quick spec
 
 ---
 
-*This workflow ensures production code is implemented correctly the first time.
-The upfront investment in Q&A and planning saves time in debugging and rework.*
+## Exception: Quick Path for Small Tasks
+
+If Clawmic detects a clearly small task (E-C level):
+
+```
+"This looks like a small change. Quick spec:
+
+- Change: [what]
+- File: [which]
+- Behavior: [expected]
+
+Say BUILD C to proceed, or let me know if this needs more planning."
+```
+
+This skips extended Q&A but still requires user confirmation.
+
+---
+
+*This workflow ensures quality through structured clarification while remaining efficient for simple tasks.*
 
 —Clawmic

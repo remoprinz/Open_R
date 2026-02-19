@@ -6,6 +6,46 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), adapted for 
 
 ---
 
+## [0.6.0] — 2026-02-19
+
+### Established
+
+- **Model Routing v2** — Complete rewrite of `context/model-routing-spec.md`.
+  Two-dimensional model selection:
+  - **Planning Tiers (P-A, P-B, P-C)** for thinking, Q&A, spec writing
+  - **Execution Tiers (E-S, E-A, E-B, E-C)** for code implementation
+  
+- **Execution Tier Hierarchy:**
+  - **E-S** (Major Implementation) — Opus for new features, redesigns, greenfield
+  - **E-A** (Major Iteration) — Opus for extending existing systems
+  - **E-B** (Complex Task) — OpenAI strong for bugs, refactoring
+  - **E-C** (Standard Task) — OpenAI cheap for small fixes
+  
+- **Implementation Workflow v2** — Updated `context/implementation-workflow.md`
+  with BUILD S/A/B/C commands and tier proposal before execution.
+
+- **Terminology Glossary** — New `context/terminology.md` to prevent
+  miscommunication (P-A/P-B/P-C, E-S/E-A/E-B/E-C, Codex clarification).
+
+- **Briefing Document** — `context/briefing-2026-02-19.md` for direct
+  communication to Clawmic.
+
+### Decided
+
+- **Budget optimization strategy:**
+  - Anthropic limit: $100/month → Opus reserved for E-S/E-A
+  - OpenAI handles E-B/E-C → separate budget, use freely
+  - Gemini handles daily chat → cheap/free
+  
+- **User commands for execution:**
+  - `BUILD S` = Major Implementation (Opus)
+  - `BUILD A` = Major Iteration (Opus)
+  - `BUILD B` = Complex Task (OpenAI strong)
+  - `BUILD C` = Standard Task (OpenAI cheap)
+  - `BUILD` without tier = Clawmic proposes, user confirms
+
+---
+
 ## [0.5.0] — 2026-02-19
 
 ### Established
