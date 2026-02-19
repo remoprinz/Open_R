@@ -26,8 +26,9 @@ Good AI assistance isn't about being impressive. It's about being useful in ways
 
 ```
 Open_R/
-├── IDENTITY.md      # Who Open R is
-├── SOUL.md          # How Open R operates
+├── IDENTITY.md      # Who Clawmic is
+├── SOUL.md          # How Clawmic operates
+├── SECURITY.md      # Secrets & API key policy (binding)
 ├── CHANGELOG.md     # Journey documentation
 └── context/         # Accumulated context (coming soon)
 ```

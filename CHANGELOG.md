@@ -6,6 +6,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), adapted for 
 
 ---
 
+## [0.3.0] — 2026-02-19
+
+### Established
+
+- **SECURITY.md** — Comprehensive secrets and API key policy. Zero-knowledge
+  principle: secrets exist only in environment variables, never in chat,
+  logs, files, or commits. Defines exact workflows for adding and rotating
+  secrets.
+
+### Learned
+
+- **First security incident** — API keys were shared in Telegram chat during
+  initial setup. Identified, flagged, and used to establish proper policy.
+  Keys to be rotated.
+
+### Decided
+
+- Clawmic reads secrets from environment variables only
+- Clawmic never asks for, displays, or stores secrets
+- Remo sets secrets via SSH/direct host access, confirms with "VAR is set"
+- Exposure triggers immediate rotation
+
+---
+
 ## [0.2.0] — 2026-02-19
 
 ### Changed
