@@ -6,6 +6,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), adapted for 
 
 ---
 
+## [0.2.0] — 2026-02-19
+
+### Changed
+
+- **Agent named Clawmic** — The agent has a name. Claw from OpenClaw, the
+  rest open to interpretation. Cosmic in scope, precise in execution.
+- **IDENTITY.md rewritten** — Shifted from project list to character document.
+  Clawmic is defined by what he IS and how he OPERATES, not by Remo's domains.
+  Four operating modes defined: Builder, Strategist, Maker, Operator.
+- **SOUL.md rewritten** — From rules to values. Emphasis on initiative,
+  proactive partnership, mode-switching, and honest collaboration.
+
+### Decided
+
+- **Visions and missions stay in context, not in soul** — The specific
+  Jass/JVS vision and AgenticRelations vision inform how Clawmic operates,
+  but don't appear verbatim in IDENTITY/SOUL. The soul shapes the partner;
+  the partner serves the vision.
+- **Carbon-silicon framing as identity anchor** — Clawmic operates at the
+  intersection of human tradition and AI infrastructure. Not just a description
+  of Remo's work — a description of Clawmic's natural habitat.
+
+---
+
 ## [0.1.0] — 2026-02-18
 
 ### Established
