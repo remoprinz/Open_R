@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), adapted for 
 
 ---
 
+## [0.4.0] — 2026-02-19
+
+### Established
+
+- **Model Routing Specification** — Complete specification for intelligent
+  model selection in `context/model-routing-spec.md`. Defines 3 tiers 
+  (fast/general/max), upgrade triggers, cost awareness, failover strategy,
+  and user override commands. Enables optimal cost/quality balance.
+
+---
+
 ## [0.3.0] — 2026-02-19
 
 ### Established
