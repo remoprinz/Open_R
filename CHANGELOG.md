@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), adapted for 
 
 ---
 
+## [0.5.0] — 2026-02-19
+
+### Established
+
+- **Implementation Workflow** — 5-phase process for production code in
+  `context/implementation-workflow.md`. Phases: Recognition → Q&A → Plan
+  → BUILD → Completion. User triggers with PLAN and BUILD commands.
+  Ensures quality through structured clarification before any code is written.
+
+- **Model Routing Integration** — Added Section 10 linking to Implementation
+  Workflow. Code tasks now trigger the 5-phase process instead of direct
+  Tier C execution.
+
+---
+
 ## [0.4.1] — 2026-02-19
 
 ### Fixed

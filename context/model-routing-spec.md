@@ -251,22 +251,51 @@ When model changes, log (if `verboseRouting=true`):
 
 ---
 
-## 10) Acceptance Criteria
+## 10) Special Workflow: Production Code
+
+**When Clawmic detects a production code implementation request:**
+
+This is NOT just a model tier decision — it triggers a mandatory workflow.
+
+**See:** `context/implementation-workflow.md`
+
+**Summary of the 5-phase workflow:**
+
+| Phase | Model Tier | User Trigger |
+|-------|------------|--------------|
+| 1. Recognition | Current | Auto-detect |
+| 2. Q&A Clarification | Tier B | Automatic |
+| 3. Implementation Plan | Tier C | User says `PLAN` |
+| 4. Execution | Tier C (Opus) | User says `BUILD` |
+| 5. Completion | Current | Automatic |
+
+**Key rules:**
+- No skipping phases for production code
+- User must explicitly approve plan before execution
+- Tier C (Opus) only engaged at execution phase to optimize cost
+
+This workflow overrides standard tier selection for code implementation tasks.
+
+---
+
+## 11) Acceptance Criteria
 
 | Scenario | Expected Behavior |
 |----------|-------------------|
 | "What time in Zürich?" | Tier A |
-| "Give me exact spec, must be perfect" | Tier C |
+| "Give me exact spec, must be perfect" | Tier C (if complexity present) |
 | Screenshot analysis | Vision model |
 | "Make me an Excel/PDF" | Tier B minimum |
 | "Production-ready migration script" | Tier C + think:high |
+| "Implement this feature" | **Implementation Workflow** (5 phases) |
+| "Build the API endpoint" | **Implementation Workflow** (5 phases) |
 | Rate limit on primary | Silent fallback, no user action |
 | `/model gpt-4o` | Switch if in allowlist |
 | `/model random-model` | Error + show allowed models |
 
 ---
 
-## 11) Implementation Notes
+## 12) Implementation Notes
 
 ### Configuration Structure
 
