@@ -1,0 +1,18 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sensitive data (if any local secrets)
+.env
+.env.local
+*.secrets
+
+# Temporary files
+*.tmp
+*.temp
