@@ -116,11 +116,13 @@ If image + debugging → Vision + Tier C.
 ### B → C (any of these)
 
 - Debugging/refactoring in real codebase
-- Keywords: "perfect", "exact", "no errors", "production-ready"
+- **Quality keywords + complexity:** "perfect", "exact", "no errors", "production-ready" PLUS at least one of: multi-step tasks, code context, constraints, or high-risk domain
 - Long specification, many acceptance criteria
 - Tool-heavy planned (multi-step, multi-file, external APIs)
 - High risk: data loss, auth/keys, CI/CD, migrations
 - User explicitly requests highest quality
+
+**Note:** Quality keywords alone (without complexity signals) do not trigger Tier C upgrade to prevent cost manipulation.
 
 ### Downgrade C/B → A (all must apply)
 
@@ -147,15 +149,20 @@ If image + debugging → Vision + Tier C.
 
 ## 5) Context Window Handling
 
-| Model Class | Context Window |
-|-------------|----------------|
-| Haiku/Flash/Mini | ~128k tokens |
-| Sonnet/Pro/4o | ~200k tokens |
-| Opus | ~200k+ tokens |
+**Reactive approach:** Instead of predicting context limits, handle them as they occur:
 
-**Rule:** If context exceeds Tier A capacity → auto-upgrade to Tier B.
-If context exceeds Tier B capacity → auto-upgrade to Tier C.
-Never truncate without user consent.
+1. **Start with selected tier** based on complexity
+2. **If provider returns context error** → upgrade to next tier
+3. **If all tiers fail with context error** → ask user to reduce context
+4. **Never truncate without user consent**
+
+**Context window capacity varies by provider and model version. Reactive handling is more robust than fixed predictions.**
+
+| Model Class | Typical Range |
+|-------------|---------------|
+| Fast models | 100-200k tokens |
+| General models | 200-1M+ tokens |
+| Max models | 200k-2M+ tokens |
 
 ---
 
@@ -185,16 +192,27 @@ Never truncate without user consent.
 1. **Auth rotation** (same provider, same model, different key if available)
 2. **Model fallback** (same tier, same provider)
 3. **Provider fallback** (same tier, different provider)
-4. **Tier fallback** (only if availability forces it, NOT for accuracy tasks)
+4. **Tier fallback** (ONLY for availability tasks, NEVER for accuracy tasks)
+
+### Critical Rule: No Tier Downgrade for Accuracy Tasks
+
+**If task requires Tier C** (keywords: "production-ready", "perfect", "no errors", high-risk):
+- **All Tier C models unavailable** → Wait/retry OR inform user
+- **Never silent downgrade to Tier B/A** → Quality violation
+- **User must approve lower tier** → Explicit consent required
+
+This prevents quality degradation for critical tasks.
 
 ### Error classes
 
 | Error | Action |
 |-------|--------|
-| Rate limit / 429 / timeout | Auth rotation → model fallback |
+| Rate limit / 429 / timeout | Auth rotation → model fallback → provider fallback |
 | Invalid key / billing | Provider disabled temporarily |
 | Model not in allowlist | Log as config bug, use fallback |
 | Context too long | Upgrade tier or ask user to reduce |
+| All Tier C unavailable (accuracy task) | Wait/retry OR user consent for downgrade |
+| All Tier C unavailable (general task) | Fallback to Tier B with warning |
 
 ### Fallback chains
 

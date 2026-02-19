@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), adapted for 
 
 ---
 
+## [0.4.1] — 2026-02-19
+
+### Fixed
+
+- **Model Routing Specification** — Critical improvements:
+  - Keywords require complexity context (prevent cost manipulation)
+  - Reactive context window handling (no fixed predictions)
+  - No tier downgrade for accuracy tasks (quality protection)
+  - Enhanced error handling for unavailable high-tier models
+
+---
+
 ## [0.4.0] — 2026-02-19
 
 ### Established
